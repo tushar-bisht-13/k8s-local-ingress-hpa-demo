@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: page1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: page1
+  template:
+    metadata:
+      labels:
+        app: page1
+    spec:
+      containers:
+        - name: page1
+          image: shadowlord13/page1:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+

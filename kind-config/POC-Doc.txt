@@ -1,0 +1,72 @@
+Once kind cluster has been setuped follow the below steps:
+
+1) Apply nginx controller from github repo:
+	"kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.4/deploy/static/provider/kind/deploy.yaml"
+
+- Verify if nginx pods are running:
+	"kubectl get pods -n ingress-nginx --watch"
+	
+Output:
+NAME                                        READY   STATUS      RESTARTS   AGE
+ingress-nginx-admission-create-2phmn        0/1     Completed   0          54m
+ingress-nginx-admission-patch-zm9s2         0/1     Completed   0          54m
+ingress-nginx-controller-68c9d85487-2pszr   1/1     Running     0          54m
+
+"ingress-nginx-controller" should be in Running STATUS as shown above.
+
+2) Install Mertic Server so HPA can monity the metrix for scaling:
+
+- # Installs the latest tagged release
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+- Add kind‑friendly flags (skip certs / prefer InternalIP)
+By default Metrics Server expects each node’s kubelet to have a public
+certificate. In local clusters (kind, Minikube, k3d) that isn’t the case, so we patch two flags:
+
+ kubectl patch deployment metrics-server -n kube-system \
+  --type=json \
+  -p='[
+    {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"},
+    {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname"}
+  ]'
+
+- #Wait until the pod is Ready
+'kubectl get pods -n kube-system -l "k8s-app=metrics-server"'
+
+Expected output: metrics-server-...  1/1   Running   0   20s
+
+- #Verify:
+
+"kubectl top nodes"          # overall stats
+"kubectl top pod"            # per‑pod stats
+
+# Or describe your HPA:
+"kubectl describe hpa page1-hpa"
+
+2) Apply all the Manifest files from k8s_manifest folder:
+
+k8s-manifests will have below Yaml files:
+ingress.yaml  page1-deployment.yaml  page1-hpa.yaml  page1-service.yaml  page2-deployment.yaml  page2-hpa.yaml  page2-service.yaml
+
+This command will apply all the manifest files present in the k8s_manifest folder.
+"kubectl apply -f k8s_manifest/"
+
+- Verify all resources are present and in Running STATUS:
+"kubectl get all && kubectl get ingress"
+
+3) Apply load to test if HPA is working:
+
+- Create a busybox container:
+"kubectl run loadpoke --image=busybox --restart=Never -i --tty -- sh"
+
+- Execute below script to add load to page1 pod:
+"while true; do wget -q -O- http://page1-service.default.svc.cluster.local >/dev/null; done"
+
+4) Moniter HPA to see cpu and memory utilization in real time and HPA scaling up and Down based on the set utilization threshold:
+"watch -n5 kubectl describe hpa page1-hpa"
+
+
+
+
+	
+
