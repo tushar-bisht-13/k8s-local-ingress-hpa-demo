@@ -1,8 +1,8 @@
 # k8s-local-ingress-hpa-demo
 
-# KIND Cluster Setup Guide
+## 1. KIND Cluster Setup Guide
 
-## 1. Installing KIND and kubectl
+### i. Installing KIND and kubectl
 Install KIND and kubectl using the provided script:
 ```bash
 
@@ -27,7 +27,7 @@ rm -rf kind
 echo "kind & kubectl installation complete."
 ```
 
-## 2. Setting Up the KIND Cluster
+### ii. Setting Up the KIND Cluster
 Create a kind-cluster-config.yaml file:
 
 ```yaml
@@ -37,7 +37,7 @@ apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
   image: kindest/node:v1.31.2
-  kubeadmConfigPatches:                # give it the ingress‑ready label, too
+  kubeadmConfigPatches:                # give it the ingress‑ready label
   - |
     kind: InitConfiguration
     nodeRegistration:
@@ -60,26 +60,68 @@ Create the cluster using the configuration file:
 
 kind create cluster --config kind-cluster-config.yaml --name my-kind-cluster
 ```
-Verify the cluster:
 
+### iii. Verify the cluster
+Use kubectl to verify the cluster:
 ```bash
 
 kubectl get nodes
 kubectl cluster-info
 ```
-## 3. Accessing the Cluster
-Use kubectl to interact with the cluster:
-```bash
 
-kubectl cluster-info
-```
-
-## 4. Deleting the Cluster
+### iv. Deleting the Cluster
 Delete the KIND cluster:
 ```bash
 
 kind delete cluster --name my-kind-cluster
 ```
+## 2. Kubernetes resource deployment
+
+### i. Install Mertic Server:
+
+#### Install the latest tagged release:
+```bash
+
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+#### Add kind‑friendly flags (skip certs / prefer InternalIP)
+
+By default Metrics Server expects each node’s kubelet to have a public
+certificate. In local clusters (kind, Minikube, k3d) that isn’t the case, so we patch two flags:
+
+```bash
+
+kubectl patch deployment metrics-server -n kube-system \
+  --type=json \
+  -p='[
+    {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"},
+    {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname"}
+  ]'
+```
+
+#### Wait until the mertics-server pod is in Running state:
+Installs the latest tagged release:
+
+```bash
+
+kubectl get pods -n kube-system -l "k8s-app=metrics-server"
+```
+
+Expected output:
+
+NAME                              READY   STATUS    RESTARTS   AGE
+metrics-server-6966c7877d-44qc9   1/1     Running   0          24m
+
+#### Verify:
+Installs the latest tagged release:
+
+```bash
+
+kubectl top nodes
+kubectl top pod
+```
+### ii. Install NGINX Controller:
 
 ## 6. Notes
 
