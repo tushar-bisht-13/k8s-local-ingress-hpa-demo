@@ -101,7 +101,6 @@ kubectl patch deployment metrics-server -n kube-system \
 ```
 
 #### Wait until the mertics-server pod is in Running state:
-Installs the latest tagged release:
 
 ```bash
 
@@ -111,6 +110,7 @@ kubectl get pods -n kube-system -l "k8s-app=metrics-server"
 Expected output:
 
 NAME                              READY   STATUS    RESTARTS   AGE
+
 metrics-server-6966c7877d-44qc9   1/1     Running   0          24m
 
 #### Verify:
