@@ -9,16 +9,23 @@ spec:
     name: page2
   minReplicas: 1
   maxReplicas: 3
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60       # wait only 1 minute
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
   metrics:
   - type: Resource
     resource:
       name: cpu
       target:
         type: Utilization       
-        averageUtilization: 70
+        averageUtilization: 50
   - type: Resource
     resource:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 70
+        averageUtilization: 50
