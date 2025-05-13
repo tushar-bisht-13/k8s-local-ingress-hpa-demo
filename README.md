@@ -108,10 +108,11 @@ kubectl get pods -n kube-system -l "k8s-app=metrics-server"
 ```
 
 Expected output:
-
+```bash
 NAME                              READY   STATUS    RESTARTS   AGE
 
 metrics-server-6966c7877d-44qc9   1/1     Running   0          24m
+```
 
 #### Verify:
 Installs the latest tagged release:
@@ -122,6 +123,18 @@ kubectl top nodes
 kubectl top pod
 ```
 ### ii. Install NGINX Controller:
+
+#### Apply nginx controller from github repo:
+```bash
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.4/deploy/static/provider/kind/deploy.yaml
+```
+
+#### Verify if nginx pods are running:
+```bash
+
+kubectl get pods -n ingress-nginx --watch
+```
 
 ## 6. Notes
 
