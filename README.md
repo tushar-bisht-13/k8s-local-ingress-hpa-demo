@@ -66,7 +66,7 @@ Use kubectl to verify the cluster:
 ```bash
 
 kubectl get nodes
-kubectl cluster-info
+kind get clusters
 ```
 
 ### iv. Deleting the Cluster
