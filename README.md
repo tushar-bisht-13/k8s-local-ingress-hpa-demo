@@ -1,6 +1,17 @@
 # k8s-local-ingress-hpa-demo
 
+## To Get Started
+
+- Clone the repository:
+
+ ```bash
+ git clone https://github.com/your-username/k8s-local-ingress-hpa-demo.git
+ cd k8s-local-ingress-hpa-demo
+ ```
+
 ## KIND Cluster Setup Guide
+
+Prerequisite: Ensure Docker is installed on your system.
 
 ### i. Installing KIND and kubectl
 Install KIND and kubectl using the provided script:
