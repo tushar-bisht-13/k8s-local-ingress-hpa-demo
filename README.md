@@ -58,7 +58,7 @@ Create the cluster using the configuration file:
 
 ```bash
 
-kind create cluster --config kind-cluster-config.yaml --name my-kind-cluster
+kind create cluster --config kind-config/kind-cluster-config.yaml --name my-kind-cluster
 ```
 
 ### iii. Verify the cluster
