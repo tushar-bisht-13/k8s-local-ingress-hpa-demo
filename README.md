@@ -1,6 +1,6 @@
 # k8s-local-ingress-hpa-demo
 
-## 1. KIND Cluster Setup Guide
+## KIND Cluster Setup Guide
 
 ### i. Installing KIND and kubectl
 Install KIND and kubectl using the provided script:
@@ -135,10 +135,78 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 
 kubectl get pods -n ingress-nginx --watch
 ```
+Expected Output:
+```bash
 
-## 6. Notes
+NAME                                        READY   STATUS      RESTARTS   AGE
+ingress-nginx-admission-create-2phmn        0/1     Completed   0          54m
+ingress-nginx-admission-patch-zm9s2         0/1     Completed   0          54m
+ingress-nginx-controller-68c9d85487-2pszr   1/1     Running     0          54m
+```
+### iii. Apply Kubernetes manifest files:
+
+#### The k8s-manifests/ folder contains:
+```bash
+📂 k8s-manifests
+├─ page1-deployment.yaml      # nginx:alpine serving page 1
+├─ page2-deployment.yaml      # nginx:alpine serving page 2
+├─ page1-service.yaml         # ClusterIP svc
+├─ page2-service.yaml         # ClusterIP svc
+├─ page1-hpa.yaml             # Auto‑scale to 1–5 replicas @ 50 % CPU
+├─ page2-hpa.yaml             # Auto‑scale to 1–5 replicas @ 50 % CPU
+└─ ingress.yaml               # Path‑based routing: /page1 → svc‑1, /page2 → svc‑2
+```
+
+#### Apply Manifests:
+```bash
+kubectl apply -f k8s-manifests/
+```
+
+#### Verify all resources are present and in Running STATUS:
+```bash
+kubectl get all && kubectl get ingress
+```
+
+#### Verify Ingress Routing:
+```bash
+curl http://localhost/page1   # Expect: "This to Page 1"
+curl http://localhost/page2   # Expect: "This to Page 2"
+```
+
+### iv. Test HPA:
+
+#### Create a busybox container:
+```bash
+kubectl run loadpoke --image=busybox --restart=Never -i --tty -- sh
+```
+
+#### Execute below script to add load to page1 pod:
+```bash
+while true; do wget -q -O- http://page1-service.default.svc.cluster.local >/dev/null; done
+```
+
+#### Moniter HPA to see cpu and memory utilization in real time and HPA scaling up and Down based on the set utilization threshold:
+```bash
+watch -n4 kubectl describe hpa page1-hpa
+```
+
+### v. Delete the applied k8s resources and Kind Cluster:
+
+#### Delete K8s resources:
+```bash
+kubectl delete -f k8s-manifests/
+```
+
+#### Delete Kind Cluster:
+```bash
+kind delete cluster --name my-kind-cluster
+```
+
+## Notes
 
 Multiple Clusters: KIND supports multiple clusters. Use unique --name for each cluster.
 Custom Node Images: Specify Kubernetes versions by updating the image in the configuration file.
 Ephemeral Clusters: KIND clusters are temporary and will be lost if Docker is restarted.
+
+
 
